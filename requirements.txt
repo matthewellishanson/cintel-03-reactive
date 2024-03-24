@@ -1,5 +1,2 @@
-pandas
-pyarrow
-shinylive
 palmerpenguins
 plotly
