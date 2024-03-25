@@ -107,7 +107,7 @@ with ui.layout_columns():
         @render_plotly
         def plotly_histogram():
             return px.histogram(
-                filtered_data(), x=input.selected_attribute(), nbins=input.plotly_bin_count()
+                filtered_data(), x=input.selected_attribute(), nbins=input.plotly_bin_count(), color="species"
         )
 
     # Creates a Seaborn Histogram showing all species
@@ -117,7 +117,7 @@ with ui.layout_columns():
     
         @render.plot(alt="Seaborn Histogram")
         def seaborn_histogram():
-            histplot = sns.histplot(data=filtered_data(), x="body_mass_g", bins=input.seaborn_bin_count())
+            histplot = sns.histplot(data=filtered_data(), x="body_mass_g", bins=input.seaborn_bin_count(), multiple="dodge", hue="species")
             histplot.set_title("Palmer Penguins")
             histplot.set_xlabel("Mass")
             histplot.set_ylabel("Count")
@@ -126,7 +126,7 @@ with ui.layout_columns():
     # Creates a Plotly Scatterplot showing all species
 
     with ui.card(full_screen=True):
-        ui.card_header("Plotly Scatterplot: Species")
+        ui.card_header("Species Scatterplot")
     
         @render_plotly
         def plotly_scatterplot():
