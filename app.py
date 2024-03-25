@@ -4,7 +4,7 @@ from shinywidgets import render_plotly
 import palmerpenguins  # This package provides the Palmer Penguins dataset
 import pandas as pd
 import seaborn as sns
-from shiny import render
+from shiny import render, reactive
 
 # Use the built-in function to load the Palmer Penguins dataset
 penguins_df = palmerpenguins.load_penguins()
@@ -84,7 +84,7 @@ with ui.layout_columns():
 
         @render.data_frame
         def render_penguins_table():
-            return render.DataTable(penguins_df)
+            return render.DataTable(filtered_data())
 
     # create a DataGrid
     with ui.card(full_screen=True):
@@ -92,7 +92,12 @@ with ui.layout_columns():
 
         @render.data_frame
         def penguins_datagrid():
-            return render.DataGrid(penguins_df)
+            return render.DataGrid(filtered_data())
+
+ui.hr()
+
+# Create a new set of columns for charts
+with ui.layout_columns():
 
     # Create a Plotly Histogram showing all species
 
@@ -102,7 +107,7 @@ with ui.layout_columns():
         @render_plotly
         def plotly_histogram():
             return px.histogram(
-                penguins_df, x=input.selected_attribute(), nbins=input.plotly_bin_count()
+                filtered_data(), x=input.selected_attribute(), nbins=input.plotly_bin_count()
         )
 
     # Creates a Seaborn Histogram showing all species
@@ -112,7 +117,7 @@ with ui.layout_columns():
     
         @render.plot(alt="Seaborn Histogram")
         def seaborn_histogram():
-            histplot = sns.histplot(data=penguins_df, x="body_mass_g", bins=input.seaborn_bin_count())
+            histplot = sns.histplot(data=filtered_data(), x="body_mass_g", bins=input.seaborn_bin_count())
             histplot.set_title("Palmer Penguins")
             histplot.set_xlabel("Mass")
             histplot.set_ylabel("Count")
@@ -125,7 +130,7 @@ with ui.layout_columns():
     
         @render_plotly
         def plotly_scatterplot():
-            return px.scatter(penguins_df,
+            return px.scatter(filtered_data(),
                 x="bill_length_mm",
                 y="body_mass_g",
                 color="species",
@@ -135,3 +140,16 @@ with ui.layout_columns():
                     "body_mass_g": "Body Mass (g)",
                 }, 
             )
+
+# --------------------------------------------------------
+# Reactive calculations and effects
+# --------------------------------------------------------
+
+# Add a reactive calculation to filter the data
+# By decorating the function with @reactive, we can use the function to filter the data
+# The function will be called whenever an input functions used to generate that output changes.
+# Any output that depends on the reactive function (e.g., filtered_data()) will be updated when the data changes.
+
+@reactive.calc
+def filtered_data():
+    return penguins_df[penguins_df["species"].isin(input.selected_species_list())]
